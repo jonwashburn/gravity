@@ -1,0 +1,115 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{microtype}
+\title{Discrete Recognition Dynamics: A Classical Mathematics Beachhead}
+\author{Jonathan Washburn}
+\date{\today}
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+We present a minimal, classical-language formulation of a discrete update framework and prove three core mathematical facts that are sufficient to connect the framework to standard conservation and variational structures: (i) a simple ``atomic tick'' model prevents concurrency collisions, (ii) a double-entry ledger induces a continuity form in which flux on closed chains vanishes, and (iii) under symmetry and unit-normalization, a unique cost functional agrees with $\tfrac12(x+x^{-1})-1$ on $\mathbb R_{>0}$. On a three-bit parity space we show the minimal covering period is exactly $2^3=8$. We state physical correspondences (continuity equation, potentials unique up to constants, classical limit) and delineate scope: non-relativistic, discrete-time kinematics and graph-theoretic reachability. All statements are framed in classical mathematics; optional machine-checked proofs (Lean) are provided in a companion repository.\end{abstract}
+
+\section{Introduction}
+Many data-driven models for complex systems invoke per-instance tuning. Here we examine a deliberately constrained alternative: a single, discrete-time bookkeeping layer that (a) forbids concurrent postings, (b) conserves a ledger-like flux on closed chains, and (c) admits a uniquely determined symmetric cost functional under standard symmetry and normalization assumptions. We keep the presentation classical and minimal, highlighting direct correspondences to continuity and variational structures.
+
+\section{Discrete recognition structures}
+\begin{definition}[Recognition structure]
+A recognition structure is a pair $(U, R)$ where $U$ is a nonempty set of states and $R\subseteq U\times U$ is a binary step relation written $a\to b$.
+\end{definition}
+\begin{definition}[Chains]
+A chain of length $n\ge0$ is a sequence $x_0,\dots,x_n$ with $x_i\to x_{i+1}$ for $i{=}0,\dots,n{-}1$. The head is $x_0$, the last is $x_n$.
+\end{definition}
+\begin{definition}[Atomic tick]
+An atomic tick structure is a family of predicates $\{P_t\}_{t\in\mathbb N}$, $P_t:U\to\{\text{true,false}\}$, such that for every $t$ there exists a unique $u_t\in U$ with $P_t(u_t)$.\end{definition}
+\begin{definition}[Ledger and flux]
+A ledger assigns integer debit and credit functions $\mathrm{debit},\mathrm{credit}:U\to\mathbb Z$ and defines $\phi(u):=\mathrm{debit}(u)-\mathrm{credit}(u)$. For a chain $x_0\to\cdots\to x_n$ the flux is $\Phi(x_0\leadsto x_n):=\phi(x_n)-\phi(x_0)$.
+\end{definition}
+\begin{definition}[Conservation on closed chains]
+A ledger is conservative if every closed chain (head=last) satisfies $\Phi=0$.
+\end{definition}
+
+\section{Core theorems}
+\begin{theorem}[No collisions under atomicity]\label{thm:atomic}
+If each tick $t$ has a unique posted state $u_t$, then no two distinct states can be posted at the same tick.
+\end{theorem}
+\begin{proof}
+Immediate from uniqueness in the definition of atomic tick.
+\end{proof}
+
+\begin{theorem}[Closed-chain flux vanishes]\label{thm:closed}
+If a ledger is conservative, then for any closed chain $x_0{=}x_n$ one has $\Phi(x_0\leadsto x_n)=0$.
+\end{theorem}
+\begin{proof}
+By definition of conservative ledgers and $\Phi=\phi(x_n)-\phi(x_0)$.
+\end{proof}
+
+\begin{definition}[Affine edge increment]
+A potential $p:U\to\mathbb Z$ is $\delta$-affine on edges if for all edges $a\to b$ one has $p(b)-p(a)=\delta$.
+\end{definition}
+\begin{proposition}[Uniqueness up to a constant on reach components]\label{prop:unique}
+If $p$ and $q$ are both $\delta$-affine on edges, then $p{-}q$ is constant on any reach component. In particular, if $p(x_0){=}q(x_0)$, then $p{=}q$ on the component of $x_0$.
+\end{proposition}
+\begin{proof}[Proof sketch]
+Along any edge $a\to b$, the difference $(p{-}q)(b)-(p{-}q)(a)=(\delta{-}\delta)=0$. Induct over chains.
+\end{proof}
+
+\begin{theorem}[Minimal covering period on three-bit parity]\label{thm:eight}
+Let $\mathcal P_3=\{0,1\}^{3}$. Any tick-pass that visits every pattern in $\mathcal P_3$ requires at least $2^3{=}8$ ticks, and there exists a pass of length exactly 8.
+\end{theorem}
+\begin{proof}[Proof idea]
+$|\mathcal P_3|=2^3$. Surjectivity from a $T$-cycle onto $\mathcal P_3$ enforces $T\ge2^3$. A Gray cycle provides equality.
+\end{proof}
+
+\section{Cost functional: symmetry and uniqueness}
+\begin{definition}[Cost requirements]\label{def:cost}
+A cost $F: \mathbb R_{>0}\to\mathbb R$ satisfies symmetry and unit normalization if: (i) $F(x)=F(x^{-1})$ for $x{>}0$, and (ii) $F(1)=0$.
+\end{definition}
+\begin{theorem}[Exp-axis agreement implies uniqueness]\label{thm:exp}
+Suppose $F$ satisfies Def.~\ref{def:cost} and agrees with $J(x):=\tfrac12(x+x^{-1})-1$ along the exponential axis, i.e. $F(e^t)=J(e^t)$ for all $t\in\mathbb R$. Then $F(x)=J(x)$ for all $x{>}0$.
+\end{theorem}
+\begin{proof}
+Set $t=\log x$ to transport the identity from the exp-axis to $\mathbb R_{>0}$.
+\end{proof}
+\begin{theorem}[Cost uniqueness under convex averaging]\label{thm:cost}
+Under standard convex-averaging hypotheses (evenness on $\log x$, symmetry, and $F(1){=}0$) one obtains $F(e^t)=J(e^t)$ for all $t$, hence by Theorem~\ref{thm:exp}: $F\equiv J$ on $\mathbb R_{>0}$.
+\end{theorem}
+\noindent
+The averaging hypotheses can be discharged via classical convexity/Jensen arguments (details omitted here; see companion proofs).
+
+\section{Classical correspondences and scope}
+\paragraph{Continuity.} With a conservative ledger, the discrete flux rule recovers a continuity form: net change over a closed chain is zero. In graph limits this yields the usual continuity equation.
+
+\paragraph{Potentials and gauge freedom.} Proposition~\ref{prop:unique} recovers the classical statement that potentials are unique up to a constant on connected components.
+
+\paragraph{Minimal period.} The parity covering bound (Theorem~\ref{thm:eight}) formalizes an eight-step minimal cycle on a 3-bit pattern space; it is a combinatorial fact independent of physical interpretation.
+
+\paragraph{Cost and variational structure.} The cost uniqueness result identifies a single symmetric, unit-normalized candidate compatible with convex averaging. Where an action or dissipation principle is valid, its positive branch matches $J$.
+
+\paragraph{Scope and limits.} The framework here is non-relativistic, discrete-time, and graph-based. No continuum or relativistic effects are claimed unless an explicit limit is taken. Phenomenological applications (e.g., galaxy kinematics) should be treated separately with clearly stated assumptions.
+
+\section{Reproducibility and resources}
+Lean scripts (optional) formalizing the above statements are provided as a single monolithic file and helper modules in the companion repository. A minimal LaTeX source and figure stubs are included to reproduce this manuscript.\newline
+\textbf{Repository:} \url{https://github.com/jonwashburn/gravity}
+
+\section*{Acknowledgments}
+The author thanks colleagues for feedback on clarity and scope.
+
+\begin{thebibliography}{9}
+\bibitem{graycodes} F. Gray, ``Pulse Code Communication,'' U.S. Patent 2,632,058 (1953).
+\bibitem{jensen} R. T. Rockafellar, \emph{Convex Analysis}, Princeton University Press (1970).
+\bibitem{continuity} J. D. Jackson, \emph{Classical Electrodynamics}, 3rd ed., Wiley (1999).
+\end{thebibliography}
+\end{document}
