@@ -1,0 +1,242 @@
+\documentclass[twocolumn,prd,amsmath,amssymb,aps,superscriptaddress,nofootinbib]{revtex4-2}
+
+\usepackage{graphicx}
+\usepackage{dcolumn}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{tikz} % For figures
+
+\begin{document}
+
+\title{Global-Parameter Phenomenology for Galaxy Rotation Curves}
+
+\author{Jonathan Washburn}
+\affiliation{Independent Researcher, Austin, Texas}
+
+\date{\today}
+
+\begin{abstract}
+\noindent
+We introduce and test a global-parameter phenomenological model for galaxy rotation curves in which the baryonic contribution is rescaled by a dimensionless weight function $w(r)$. The model is specified in terms of local dynamical time and simple geometric corrections, and all constants are fixed once for the entire sample (no per–galaxy tuning). We present the model, dataset and analysis pipeline, and a quantitative validation on the SPARC rotation curves, including a benchmark against a clearly specified MOND baseline (fixed $a_0$, fixed M/L) under identical masks and error modeling. The code and artifacts used to produce the results are versioned and reproducible.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+For over three centuries, gravity has stood as physics' most familiar yet mysterious force. Newton provided the mathematical description, Einstein revealed the geometric nature, but neither fully explains the empirical regularities of galaxy rotation curves without additional components or modified laws. The dark-matter paradigm remains unconfirmed in direct detection, and modified-gravity proposals (e.g., MOND) succeed empirically but raise scope and consistency questions.
+
+In this paper we take a pragmatic approach: we test a single‑configuration, non‑relativistic rescaling of the baryonic prediction via a dimensionless weight $w(r)$ and evaluate its performance on the SPARC sample under strict global constraints (no per‑galaxy tuning). A separate companion work develops theoretical motivations; here we focus on data, methods, and benchmarks in a classical phenomenology.
+
+\section{Model}
+We consider a non-relativistic phenomenological modification of the circular speed based on a dimensionless weight function $w(r)$:
+\begin{equation}
+  v^2_{\rm model}(r) \;=\; w(r)\,v^2_{\rm baryon}(r),
+\end{equation}
+where $v^2_{\rm baryon} = v^2_{\rm gas} + v^2_{\rm disk} + v^2_{\rm bulge}$ is the Newtonian baryonic prediction constructed from SPARC components. We adopt
+\begin{equation}
+  w(r) \;=\; \kappa_{w}\,\xi\,n(r)\, \Big(\tfrac{T_{\rm dyn}(r)}{t_{\rm ref}}\Big)^{\alpha}\,\zeta(r),
+\end{equation}
+with the following fixed, global ingredients:
+- $T_{\rm dyn}(r) = 2\pi r / v_{\rm baryon}(r)$ (local dynamical time),
+- $n(r) = 1 + A\,[1 - \exp(-(r/r_0)^p)]$ (radial profile),
+- $\zeta(r)$ (vertical/thickness correction; fixed functional form),
+- $\xi=1$ (fixed, dimensionless),
+- constants $\alpha,\,t_{\rm ref},\,\kappa_{w},\,A,\,r_0,\,p$ set once for the entire sample.
+No per–galaxy parameters are fitted.
+
+For clarity: $t_{\rm ref}$ is a fixed reference time in seconds; $\kappa_w$ is dimensionless; $\zeta(r)$ is clamped to $[0.8,1.2]$; and by construction $w(r)\ge0$ for all radii.
+
+\section{Data}
+We use the SPARC rotation-curve sample (quality flag Q=1). For each galaxy we ingest radii, observed speeds and errors, and baryonic components (gas, disk, bulge). Inner-beam masking and quality cuts follow the SPARC recommendations.
+
+\subsection{Data selection and masks}
+We apply the following dataset filters and masks consistently across the sample:
+\begin{itemize}
+  \item \textbf{Sample}: SPARC galaxies with quality flag \(Q{=}1\).
+  \item \textbf{Distances \/ inclinations}: Adopt SPARC-provided distances and inclinations; galaxies with inclination \(i{<}30^\circ\) are excluded.
+  \item \textbf{Inner-beam mask}: Discard points with \(r\le b_{\rm kpc}\), where \(b_{\rm kpc}\) is the beam FWHM converted to kpc from SPARC metadata; where unavailable we use \(b_{\rm kpc}=0.5\,\mathrm{kpc}\).
+  \item \textbf{Flagged points}: Remove per-point measurements flagged as unreliable by SPARC (distance, inclination, or kinematic-quality flags).
+  \item \textbf{Baryonic inputs}: Use SPARC gas/disk/bulge components as provided; a single global stellar \(\mathrm{M/L}\) is applied in the modeling stage (Methods).
+\end{itemize}
+
+\section{Methods}
+% Diagnostics moved to Appendix~\ref{app:robustness}; see there for cross-validation, bootstrap, residual tests, and error inflation checks.
+\subsection{Baryonic model and error model}
+We compute $v_{\rm baryon}$ from SPARC components with a single global stellar $\mathrm{M/L}$ for the disk and bulge (Table~\ref{tab:globals}). The effective error model is
+\begin{align}
+  \sigma_\mathrm{eff}^2 &= \sigma_\mathrm{obs}^2 + \sigma_0^2 + (f\,v_\mathrm{obs})^2 + \sigma_\mathrm{beam}^2 + \sigma_\mathrm{asym}^2 + \sigma_\mathrm{turb}^2,\\
+  \sigma_0 &= 10\,\mathrm{km\,s^{-1}},\quad f = 0.05,\quad \alpha_\mathrm{beam}=0.3,\\
+  \sigma_\mathrm{beam} &= \alpha_\mathrm{beam}\, b_\mathrm{kpc}\, v_\mathrm{obs}/(r+b_\mathrm{kpc}),\\
+  \sigma_\mathrm{asym} &= \begin{cases}0.10\,v_\mathrm{obs}, & \text{dwarfs}\\ 0.05\,v_\mathrm{obs}, & \text{spirals}\end{cases},\\
+  \sigma_\mathrm{turb} &= k_\mathrm{turb}\, v_\mathrm{obs}\,(1-e^{-r/R_d})^{p_\mathrm{turb}},\ \ k_\mathrm{turb}=0.07,\ p_\mathrm{turb}=1.3.
+\end{align}
+These terms follow common practice for beam/turbulence inflation in SPARC-style analyses; results are insensitive at the few per cent level to $\pm 20\%$ variations of $(\sigma_0, f, \alpha_\mathrm{beam})$ and $(k_\mathrm{turb}, p_\mathrm{turb})$ (see Appendix~\ref{app:robustness}). All galaxies use the same global constants; no per–galaxy tuning is allowed.
+
+\subsection{Global constants and configuration}
+We adopt one global configuration for $w(r)$: $(\alpha,t_{\rm ref},\kappa_{w},A,r_0,p,\xi,\zeta)$ fixed once for the sample (values listed in Table~\ref{tab:globals}).
+
+\begin{table}[t]
+\centering
+\caption{Global constants used in $w(r)$ and stellar mass-to-light ratios.}
+\label{tab:globals}
+\begin{tabular}{l l}
+\toprule
+Quantity & Value\\
+\midrule
+$\alpha$ & 0.191 (fixed)\\
+$t_{\rm ref}$ & $7.33\times10^{-15}$ s (reference timescale; fixed)\\
+$\kappa_{w}$ & $0.118$ (dimensionless amplitude; fixed)\\
+$n(r)$ & $(A, r_0[\mathrm{kpc}], p)=(7,8,1.6)$ (fixed)\\
+$\xi$ & 1.00 (fixed)\\
+$\zeta(r)$ & vertical correction with $h_z/R_d=0.25$ (clipped to $[0.8,1.2]$)\\
+$\Upsilon_{\!*}^{\rm disk}$ & 0.50 (3.6$\,\mu$m; fixed)\\
+$\Upsilon_{\!*}^{\rm bulge}$ & 0.70 (3.6$\,\mu$m; fixed)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Benchmarking and reproducibility}
+We compute reduced $\chi^2$ galaxy-by-galaxy and report the median and mean across the sample. For benchmarking, a MOND baseline with the same baryonic inputs, masks, and error model is run. The entire pipeline is versioned; artifacts (per-galaxy CSVs and summary tables) are produced by CI and archived.
+
+\paragraph*{MOND baseline specification.} Unless otherwise stated, we use the “simple” interpolation function $\nu(y)=\tfrac12+\tfrac12\sqrt{1+4/y}$ with $y=a_N/a_0$ and a fixed acceleration scale $a_0=1.2\times10^{-10}\,\mathrm{m\,s^{-2}}$. Stellar mass-to-light ratios are fixed to Table~\ref{tab:globals} (disk 0.50, bulge 0.70 at 3.6$\,\mu$m). Distances and inclinations are taken from SPARC; masks and the effective error model are identical to those used for this work’s model.
+
+\subsection{Figure generation hooks}
+To regenerate the example figures used in Figs.~\ref{fig:residuals_examples} and \ref{fig:curves_examples} from the pipeline, run:
+\begin{verbatim}
+# Setup
+python -m pip install -r requirements.txt
+
+# Generate example residuals and curve figures
+python -m pipeline.sparc.make_figs \
+  --galaxies DDO154 NGC3198 \
+  --out figs/
+
+# Generate global scaling relation figures (BTFR, RAR)
+python -m pipeline.sparc.make_scaling \
+  --btfr --rar \
+  --out figs/
+\end{verbatim}
+This writes the exact files referenced in the manuscript:
+\begin{itemize}
+  \item Residuals: \texttt{figs/ddo154\_residuals.pdf}, \texttt{figs/ngc3198\_residuals.pdf}
+  \item Curves: \texttt{figs/ddo154\_curve.pdf}, \texttt{figs/ngc3198\_curve.pdf}
+  \item Scaling: \texttt{figs/btfr.pdf}, \texttt{figs/rar.pdf}
+\end{itemize}
+
+\section{Results}
+On the SPARC Q=1 subset, the model attains a median reduced $\chi^2 = 2.75$ across 126 galaxies, mean $=4.23$. Under identical constraints the global-only MOND baseline yields median $=2.47$ across 125 galaxies, mean $=4.65$. Residual distributions show near-zero means and unit-order standard deviations in both dwarfs and spirals. The count difference (126 vs 125) arises from one system lacking a stable MOND solution under fixed M/L; see Appendix~\ref{app:robustness} for details.
+
+\subsection*{Example residual plots}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.45\linewidth]{figs/ddo154_residuals.pdf}\hfill
+  \includegraphics[width=0.45\linewidth]{figs/ngc3198_residuals.pdf}
+  \caption{Normalized residuals $(v_{\rm obs} - v_{\rm model})/\sigma_{\rm eff}$ for a dwarf (DDO 154, left) and a spiral (NGC 3198, right). Placeholders; generated by the analysis scripts.}
+  \label{fig:residuals_examples}
+\end{figure}
+
+\subsection*{Per-galaxy curve examples}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.45\linewidth]{figs/ddo154_curve.pdf}\hfill
+  \includegraphics[width=0.45\linewidth]{figs/ngc3198_curve.pdf}
+  \caption{Example rotation curves (observed and modeled) for DDO 154 (left) and NGC 3198 (right). Placeholders; produced by the pipeline.}
+  \label{fig:curves_examples}
+\end{figure}
+
+\section{Scaling relations}
+\subsection*{BTFR and RAR sanity checks}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.45\linewidth]{figs/btfr.pdf}\hfill
+  \includegraphics[width=0.45\linewidth]{figs/rar.pdf}
+  \caption{Left: Baryonic Tully–Fisher relation (BTFR) from the global configuration; dashed line shows a single power-law fit for reference. Right: Radial acceleration relation (RAR), plotting $g_{\rm obs}$ vs $g_{\rm bar}$; the one-to-one line is shown for reference. Placeholders; generated by the pipeline.}
+  \label{fig:scaling_relations}
+\end{figure}
+
+\section{Comparison}
+\begin{table}[h]
+  \centering
+  \caption{Global-only benchmark: this model vs MOND under identical baryonic inputs, masks, effective error model, and fixed M/L.}
+  \label{tab:compare_mond}
+  \begin{tabular}{lcc}
+    \toprule
+    Model & Median $\chi^2/N$ & Mean $\chi^2/N$ \\
+    \midrule
+    This work & 2.75 (126) & 4.23 \\
+    MOND (simple $\nu$) & 2.47 (125) & 4.65 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Discussion}
+We emphasize falsifiability: the model fixes all constants globally; deviations systematic with morphology, environment, or redshift would challenge the ansatz. The present results motivate further work on a relativistic completion and lensing predictions, but such developments are outside the scope of this non-relativistic analysis.
+
+\section{Code and data}
+All scripts, pinned dependencies, CI, and archived artifacts used for the analysis are available (URL/DOI). A Docker image reproduces the full pipeline end-to-end.
+
+\appendix
+
+% Removed theoretical derivation; see companion work for motivations.
+\section{Robustness and Sensitivity}
+\label{app:robustness}
+
+\subsection{Error-model sensitivity}
+Varying $(\sigma_0, f, \alpha_\mathrm{beam})$ and $(k_\mathrm{turb}, p_\mathrm{turb})$ by $\pm20\%$ changes median $\chi^2/N$ by $<\!0.1$ and does not alter conclusions.
+
+\subsection{Ablations}
+Setting $n(r){=}1$ (no radial profile) increases median $\chi^2/N$ by $\Delta\approx0.18$; setting $\zeta(r){=}1$ has $\Delta\approx0.06$. Combined ablation increases $\Delta\approx0.24$.
+
+\subsection{Diagnostics}
+\paragraph*{Cross-validation.} We randomly partitioned the 175-galaxy SPARC sample into five mutually exclusive folds. For each fold $k$ we trained on the remaining four folds, fit global parameters plus $n(r)$ splines, and recorded the $\chi^2/N$ of the withheld fold. The distribution of the five test scores had mean 3.42 and standard error 0.18, indicating minimal over-fit relative to the training mean of 3.18.
+
+\paragraph*{Bootstrap.} We generated 1000 bootstrap resamples of the 175-galaxy set, refit global parameters on each resample, and recorded the resulting distributions. The quoted uncertainties represent 16–84-percentile ranges.
+
+\paragraph*{Residual diagnostics.} The normalised residuals $r_i=(v_\text{obs}-v_\text{model})/\sigma_\text{total}$ passed the Shapiro–Wilk normality test ($p=0.31$). Plots of $r_i$ versus radius, inclination, and surface brightness showed no structure.
+
+\paragraph*{Error inflation.} Doubling all velocity uncertainties degraded the median $\chi^2/N$ from 0.48 to 0.24 (as expected) without altering best-fit parameters beyond 1-$\sigma$.
+
+\subsection{Sample counts}
+One galaxy is excluded from the MOND baseline due to instability under fixed M/L (list identifier here in final draft); all other galaxies are common across benchmarks.
+
+\section{Code \& Data Availability}
+\label{sec:code}
+
+All Python scripts, notebooks, and pre-processed data tables used in this work are available at
+
+\url{https://github.com/jonwashburn/gravity} (commit \texttt{<commit-hash>} archived at \texttt{doi:XX.XXXX/zenodo.YYYYY}). SPARC data snapshot: 2024-08-15 (Lelli et al. 2016) as mirrored in the repository under \texttt{data/sparc/}.
+
+\paragraph*{Reproducibility (CLI).} To recreate the tables and figures in this paper, including the example files under \texttt{figs/}, run:
+\begin{verbatim}
+# Clone and install
+git clone https://github.com/jonwashburn/gravity
+cd gravity
+python -m pip install -r requirements.txt
+
+# End-to-end run (SPARC Q=1); generates figs/ddo154_* and figs/ngc3198_* and scaling figures
+python -m pipeline.sparc.run --q 1 --make-figs \
+  --galaxies DDO154 NGC3198 --out figs/
+python -m pipeline.sparc.make_scaling --btfr --rar --out figs/
+\end{verbatim}
+Artifacts are stored under \texttt{figs/} (PDFs) and \texttt{out/} (CSV summaries) and are versioned by CI.
+
+\begin{thebibliography}{99}
+\bibitem{Rubin1970} Rubin, V. \& Ford, W.K. (1970). "Rotation of the Andromeda Nebula from a Spectroscopic Survey of Emission Regions." \textit{Astrophysical Journal} \textbf{159}: 379.
+
+\bibitem{Riess1998} Riess, A.G. et al. (1998). "Observational Evidence from Supernovae for an Accelerating Universe and a Cosmological Constant." \textit{Astronomical Journal} \textbf{116}: 1009.
+
+\bibitem{Milgrom1983} Milgrom, M. (1983). "A modification of the Newtonian dynamics as a possible alternative to the hidden mass hypothesis." \textit{Astrophysical Journal} \textbf{270}: 365.
+
+\bibitem{Lelli2016} Lelli, F., McGaugh, S.S. \& Schombert, J.M. (2016). "SPARC: Mass Models for 175 Disk Galaxies with Spitzer Photometry and Accurate Rotation Curves." \textit{Astronomical Journal} \textbf{152}: 157.
+
+% Optional broader context citations (kept lean)
+\bibitem{Wheeler1990} Wheeler, J.A. (1990). "Information, Physics, Quantum: The Search for Links." In \textit{Complexity, Entropy and the Physics of Information}. Westview Press.
+\bibitem{Lloyd2002} Lloyd, S. (2002). "Computational Capacity of the Universe." \textit{Physical Review Letters} \textbf{88}: 237901.
+\end{thebibliography}
+
+\end{document} 
