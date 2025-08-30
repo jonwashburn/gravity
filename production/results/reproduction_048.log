@@ -1,0 +1,67 @@
+
+============================================================
+REPRODUCING THE 0.48 FIT FROM PAPER
+============================================================
+
+Loading SPARC master table...
+Loaded 175 galaxies
+
+Using EXACT parameters from paper:
+  α = 0.194
+  C₀ = 5.064
+  γ = 2.953
+  δ = 0.216
+  h_z/R_d = 0.300
+
+Expected global λ ≈ 0.119
+
+Calculating fits for all galaxies...
+
+Actual global λ = 0.1188
+Average boost factor = 8.4×
+
+============================================================
+REPRODUCTION RESULTS
+============================================================
+
+Overall performance (175 galaxies):
+  Median χ²/N = 0.509
+  Mean χ²/N = 2.718
+  Best χ²/N = 0.004
+  Worst χ²/N = 62.710
+
+By galaxy type:
+  Dwarfs: median = 0.161 (N=59)
+  Spirals: median = 0.938 (N=116)
+
+Performance distribution:
+  χ²/N < 0.5: 49.7%
+  χ²/N < 1.0: 62.3%
+  χ²/N < 1.5: 70.3%
+  χ²/N < 2.0: 76.6%
+
+============================================================
+COMPARISON TO PAPER
+============================================================
+Paper claimed median χ²/N = 0.48
+We reproduced median χ²/N = 0.509
+
+✓ SUCCESS: Reproduction matches paper within tolerance!
+
+Results saved to: reproduction_048_results.pkl
+
+============================================================
+TOP 10 BEST-FIT GALAXIES
+============================================================
+ 1. UGC00634        χ²/N =  0.004 (spiral)
+ 2. UGC05005        χ²/N =  0.006 (spiral)
+ 3. F574-2          χ²/N =  0.016 (dwarf)
+ 4. UGC09992        χ²/N =  0.017 (dwarf)
+ 5. NGC4138         χ²/N =  0.019 (spiral)
+ 6. F563-V1         χ²/N =  0.019 (dwarf)
+ 7. UGC07559        χ²/N =  0.023 (dwarf)
+ 8. UGC08837        χ²/N =  0.029 (dwarf)
+ 9. UGC02023        χ²/N =  0.035 (dwarf)
+10. UGC05829        χ²/N =  0.040 (dwarf)
+
+Reproduction complete!

@@ -1,10 +1,53 @@
-# Gravity repository (archived snapshot)
+# Gravity: Information-Limited Gravity (ILG) – Production
 
-This repository's previous contents have been archived on 20250816-182339 UTC.
+This repo contains a top-level production pipeline to reproduce the galaxy rotation results and artifacts referenced in the paper.
 
-- Tarball: archives/snapshot-20250816-182339.tar.gz
-- Tree: archives/snapshot-20250816-182339-tree/
+- Scripts: `production/scripts/`
+  - `build_sparc_master_table.py`
+  - `ledger_final_combined.py`
+  - `reproduce_048_fit.py`
+  - `visualize_best_fits.py`
+- Data: `production/data/Rotmod_LTG` (symlink to SPARC-like rotation curves)
+- Results: `production/results/` (master table, combined solver outputs, reproduction artifacts)
+- Paper sources: `production/paper/` (`dark-matter-galaxy-rotation.tex`, `Gravity-derived.tex`)
 
-A clean root is prepared for new gravity phenomenology work.
+Legacy materials are preserved under `archives/`.
 
-Repo: https://github.com/jonwashburn/gravity
+## Quickstart
+
+1) Create a venv and install requirements:
+
+```
+cd production
+python3 -m venv env/.venv
+source env/.venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r env/requirements.txt
+```
+
+2) Build the master table:
+
+```
+cd scripts
+python build_sparc_master_table.py
+```
+
+3) Run the combined solver:
+
+```
+python ledger_final_combined.py
+# Outputs to ../results/
+```
+
+4) Reproduce the 0.48 fit and visualize:
+
+```
+python reproduce_048_fit.py
+python visualize_best_fits.py
+# Outputs to ../results/
+```
+
+## Notes
+- Legacy docs moved to `archives/legacy/`.
+- `.gitignore` excludes local virtualenv under `production/env/.venv/`.
+- For reproducibility, pin your environment or use containers if desired.
