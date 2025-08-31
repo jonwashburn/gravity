@@ -51,3 +51,10 @@ python visualize_best_fits.py
 - Legacy docs moved to `archives/legacy/`.
 - `.gitignore` excludes local virtualenv under `active/env/.venv/`.
 - For reproducibility, pin your environment or use containers if desired.
+
+
+## Structure
+- active/: current pipeline (scripts, data link, results, paper)
+- legacy/: archived materials (archives moved here)
+
+Data link: active/data/Rotmod_LTG -> ../../legacy/archives/snapshot-20250816-182339-tree/data/Rotmod_LTG
