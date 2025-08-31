@@ -189,7 +189,7 @@ Relativistic extension & Scalar–tensor (Sec.~2.4) & TeVeS, RAQUAL \\
 
 \subsection{ILG Solver and Error Model}
 
-We implement a pure, global-only solver using the production scripts in \texttt{jonwashburn/gravity}: \texttt{production/scripts/ledger\_final\_combined.py} and \texttt{production/scripts/reproduce\_048\_fit.py}. Default configuration uses the acceleration kernel $w_g$, analytic $n(r)$, global $\xi$, $\zeta(r)$ with $h_z/R_d=0.25$, and a single global stellar disk M/L of 1.0. No per-galaxy adjustments are permitted.
+We implement a pure, global-only solver using the production scripts in \texttt{jonwashburn/gravity}: \texttt{active/scripts/ledger\_final\_combined.py} and \texttt{active/scripts/reproduce\_048\_fit.py}. Default configuration uses the acceleration kernel $w_g$, analytic $n(r)$, global $\xi$, $\zeta(r)$ with $h_z/R_d=0.25$, and a single global stellar disk M/L of 1.0. No per-galaxy adjustments are permitted.
 
 Effective baryonic speed uses the SPARC components with a global disk M/L: $v_\mathrm{baryon}^2 = v_\mathrm{gas}^2 + (\sqrt{\mathrm{M/L}}\,v_\mathrm{disk})^2 + v_\mathrm{bul}^2$. The model prediction is $v_\mathrm{model}(r) = \sqrt{w(r)}\, v_\mathrm{baryon}(r)$.
 For the MOND baseline we use the simple $\nu$-interpolation function to construct the MOND circular speed from the same baryonic components under the same masks and error model.
@@ -208,7 +208,7 @@ Code purity is enforced through the \texttt{--mode=pure} flag (default), which d
 
 This implementation achieves the reported fits while maintaining theoretical purity, with parameter derivations detailed in the supplementary code.
 
-To demonstrate the concrete existence and reproducibility of our implementation, the code is available at \href{https://github.com/jonwashburn/gravity}{https://github.com/jonwashburn/gravity}. A top-level \texttt{production/} directory contains scripts, data link, and results. The workflow can be run with:
+To demonstrate the concrete existence and reproducibility of our implementation, the code is available at \href{https://github.com/jonwashburn/gravity}{https://github.com/jonwashburn/gravity}. A top-level \texttt{active/} directory contains scripts, data link, and results. The workflow can be run with:
 
 \begin{verbatim}
 cd production
@@ -229,11 +229,11 @@ Table~\ref{tab:filesizes} lists sizes of key files:
 \toprule
 Path & Purpose \\
 \midrule
-production/scripts/build\_sparc\_master\_table.py & Build SPARC master table \\
-production/scripts/ledger\_final\_combined.py & Core ILG pipeline (global-only) \\
-production/scripts/reproduce\_048\_fit.py & Reproduce key median result \\
-production/results/* & Outputs: logs, pkl, example figures \\
-production/paper/* & Paper sources and compiled PDFs \\
+active/scripts/build\_sparc\_master\_table.py & Build SPARC master table \\
+active/scripts/ledger\_final\_combined.py & Core ILG pipeline (global-only) \\
+active/scripts/reproduce\_048\_fit.py & Reproduce key median result \\
+active/results/* & Outputs: logs, pkl, example figures \\
+active/paper/* & Paper sources and compiled PDFs \\
 \bottomrule
 \end{tabular}
 \end{table}

@@ -2,14 +2,14 @@
 
 This repo contains a top-level production pipeline to reproduce the galaxy rotation results and artifacts referenced in the paper.
 
-- Scripts: `production/scripts/`
+- Scripts: `active/scripts/`
   - `build_sparc_master_table.py`
   - `ledger_final_combined.py`
   - `reproduce_048_fit.py`
   - `visualize_best_fits.py`
-- Data: `production/data/Rotmod_LTG` (symlink to SPARC-like rotation curves)
-- Results: `production/results/` (master table, combined solver outputs, reproduction artifacts)
-- Paper sources: `production/paper/` (`dark-matter-galaxy-rotation.tex`, `Gravity-derived.tex`)
+- Data: `active/data/Rotmod_LTG` (symlink to SPARC-like rotation curves)
+- Results: `active/results/` (master table, combined solver outputs, reproduction artifacts)
+- Paper sources: `active/paper/` (`dark-matter-galaxy-rotation.tex`, `Gravity-derived.tex`)
 
 Legacy materials are preserved under `archives/`.
 
@@ -49,5 +49,5 @@ python visualize_best_fits.py
 
 ## Notes
 - Legacy docs moved to `archives/legacy/`.
-- `.gitignore` excludes local virtualenv under `production/env/.venv/`.
+- `.gitignore` excludes local virtualenv under `active/env/.venv/`.
 - For reproducibility, pin your environment or use containers if desired.

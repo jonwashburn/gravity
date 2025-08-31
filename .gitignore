@@ -1,2 +1,2 @@
 # Ignore local env
-production/env/.venv/
+active/env/.venv/
