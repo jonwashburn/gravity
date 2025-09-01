@@ -7,6 +7,8 @@ This repo contains a top-level production pipeline to reproduce the galaxy rotat
   - `ledger_final_combined.py`
   - `reproduce_048_fit.py`
   - `visualize_best_fits.py`
+  - `plot_example_rc.py`
+  - `make_release_bundle.sh`
 - Data: `active/data/Rotmod_LTG` (symlink to SPARC-like rotation curves)
 - Results: `active/results/` (master table, combined solver outputs, reproduction artifacts)
 - Paper sources: `active/paper/` (`dark-matter-galaxy-rotation.tex`, `Gravity-derived.tex`)
@@ -25,11 +27,12 @@ python -m pip install --upgrade pip
 python -m pip install -r env/requirements.txt
 ```
 
-2) Build the master table:
+2) Build the master table and make an example figure:
 
 ```
 cd scripts
 python build_sparc_master_table.py
+python plot_example_rc.py  # emits ../results/example_rc.pdf
 ```
 
 3) Run the combined solver:
@@ -45,6 +48,14 @@ python ledger_final_combined.py
 python reproduce_048_fit.py
 python visualize_best_fits.py
 # Outputs to ../results/
+```
+
+5) Create a release bundle (paper + scripts + minimal artifacts):
+
+```
+chmod +x make_release_bundle.sh
+./make_release_bundle.sh
+# Archives under active/results/release/
 ```
 
 ## Notes
