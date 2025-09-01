@@ -99,6 +99,30 @@ def xi_threads(f_gas_true: float, edges: np.ndarray) -> float:
     return 1.0 + C_LAG * (u ** 0.5)
 
 
+def compute_global_n_norm(master_table: Dict[str, Any]) -> float:
+    """Compute a single global normalization c_n so that the exponential-disc
+    weighted mean of n(r) equals 1 for a representative Rd.
+
+    We use Rd_ref = median of available R_d; weight w(r) ∝ r exp(-r/Rd_ref).
+    """
+    Rd_vals: List[float] = []
+    for g in master_table.values():
+        try:
+            Rd = float(g.get('R_d', np.nan))
+            if np.isfinite(Rd) and Rd > 0:
+                Rd_vals.append(Rd)
+        except Exception:
+            continue
+    Rd_ref = float(np.median(Rd_vals)) if Rd_vals else 2.0
+    # radial grid up to 6 scale lengths
+    r = np.linspace(0.05 * Rd_ref, 6.0 * Rd_ref, 600)
+    w = r * np.exp(-r / Rd_ref)
+    mean_n = float(np.trapz(n_analytic(r) * w, r) / np.trapz(w, r))
+    if mean_n <= 0:
+        return 1.0
+    return 1.0 / mean_n
+
+
 def w_g_kernel(g_bar_si: np.ndarray) -> np.ndarray:
     # g_ext = 0
     term = np.maximum(g_bar_si / A0, 1e-30)  # avoid div/underflow
@@ -112,7 +136,8 @@ def compute_ilg_velocity(r_kpc: np.ndarray,
                          v_obs: np.ndarray,
                          f_gas_true: float,
                          R_d_guess: float | None = None,
-                         xi_value: float | None = None) -> np.ndarray:
+                         xi_value: float | None = None,
+                         c_n: float = 1.0) -> np.ndarray:
     # Apply global M/L to stellar disk
     v_baryon = np.sqrt(v_gas ** 2 + (math.sqrt(GLOBAL_ML) * v_disk) ** 2 + v_bul ** 2)
 
@@ -122,7 +147,7 @@ def compute_ilg_velocity(r_kpc: np.ndarray,
     g_bar = np.where(r_m > 0, (v_baryon_mps ** 2) / r_m, 0.0)
 
     w_g = w_g_kernel(g_bar)
-    n_r = n_analytic(r_kpc)
+    n_r = c_n * n_analytic(r_kpc)
     xi = xi_global(f_gas_true) if xi_value is None else float(xi_value)
     # Geometric factor: simple thickness proxy using R_d if available
     if R_d_guess is None or R_d_guess <= 0:
@@ -159,14 +184,18 @@ def sigma_total_kms(r_kpc: np.ndarray,
                     v_obs: np.ndarray,
                     v_err: np.ndarray,
                     R_d_guess: float | None = None,
-                    is_dwarf: bool | None = None) -> np.ndarray:
+                    is_dwarf: bool | None = None,
+                    beam_kpc: float | None = None) -> np.ndarray:
     # Base floors
     sigma = v_err ** 2 + SIGMA0 ** 2 + (F_FLOOR * v_obs) ** 2
-    # Beam smearing (approximate; missing beam_kpc, so emulate with R_d scale)
-    if R_d_guess is not None and R_d_guess > 0:
-        beam_kpc = 0.3 * R_d_guess  # heuristic if catalog beam is absent
-        sigma_beam = ALPHA_BEAM * beam_kpc * v_obs / (r_kpc + beam_kpc)
-        sigma += sigma_beam ** 2
+    # Beam smearing: prefer catalog beam_kpc if provided; else heuristic from R_d
+    if beam_kpc is None:
+        if R_d_guess is not None and R_d_guess > 0:
+            beam_kpc = 0.3 * R_d_guess
+        else:
+            beam_kpc = 0.6  # conservative fallback
+    sigma_beam = ALPHA_BEAM * beam_kpc * v_obs / (r_kpc + beam_kpc)
+    sigma += sigma_beam ** 2
     # Asymmetry term
     if is_dwarf is None:
         is_dwarf = bool(np.nanmax(v_obs) < 80.0)
@@ -188,8 +217,15 @@ def eval_pure_global(master_table: Dict[str, Any]) -> pd.DataFrame:
     beam_mask_factor = 0.3  # heuristic when catalog beam is unavailable
     # Global threads thresholds (discrete complexity proxy)
     fgas_edges = compute_fgas_edges(master_table, num_bins=5)
+    c_n = compute_global_n_norm(master_table)
 
     for name, g in master_table.items():
+        # Optional Q=1 gate when available
+        try:
+            if int(g.get('Q', 1)) != 1:
+                continue
+        except Exception:
+            pass
         df = g['data']
         r = df['rad'].values.astype(float)
         v_obs = df['vobs'].values.astype(float)
@@ -201,8 +237,14 @@ def eval_pure_global(master_table: Dict[str, Any]) -> pd.DataFrame:
         f_gas_true = float(g.get('f_gas_true', 0.0))
 
         R_d_guess = float(g.get('R_d', 2.0))
-        # Apply inner-beam mask heuristic r >= 0.3 R_d
-        b_kpc = beam_mask_factor * R_d_guess
+        # Apply inner-beam mask: prefer catalog beam if present; else heuristic r >= 0.3 R_d
+        beam_from_cat = g.get('beam_kpc', None)
+        try:
+            beam_from_cat = float(beam_from_cat) if beam_from_cat is not None else None
+        except Exception:
+            beam_from_cat = None
+        b_kpc = (beam_from_cat if (beam_from_cat is not None and beam_from_cat > 0) else
+                 beam_mask_factor * R_d_guess)
         mask = np.isfinite(r) & np.isfinite(v_obs) & np.isfinite(v_err) & (r >= b_kpc)
         r = r[mask]
         v_obs = v_obs[mask]
@@ -215,11 +257,13 @@ def eval_pure_global(master_table: Dict[str, Any]) -> pd.DataFrame:
 
         # Threads-informed xi (discrete, global thresholds)
         xi_val = xi_threads(f_gas_true, fgas_edges)
-        v_ilg = compute_ilg_velocity(r, v_gas, v_disk, v_bul, v_obs, f_gas_true, R_d_guess, xi_value=xi_val)
+        v_ilg = compute_ilg_velocity(r, v_gas, v_disk, v_bul, v_obs, f_gas_true,
+                                     R_d_guess, xi_value=xi_val, c_n=c_n)
         v_mond = mond_simple_nu_velocity(r, v_gas, v_disk, v_bul)
 
         is_dwarf = bool(np.nanmax(v_obs) < 80.0)
-        sig = sigma_total_kms(r, v_obs, v_err, R_d_guess=R_d_guess, is_dwarf=is_dwarf)
+        sig = sigma_total_kms(r, v_obs, v_err, R_d_guess=R_d_guess, is_dwarf=is_dwarf,
+                              beam_kpc=beam_from_cat)
         chi2_ilg = float(np.sum(((v_obs - v_ilg) / sig) ** 2))
         chi2_mond = float(np.sum(((v_obs - v_mond) / sig) ** 2))
 
@@ -263,10 +307,10 @@ def main() -> None:
 
     # Summary
     policy = (
-        'pure-global (no per-galaxy tuning); analytic n(r); global M/L=1.0; '
-        'ξ_threads: f_gas discretized by global quintiles; ζ with h_z/R_d=0.25; '
-        'errors σ0, fractional floor, beam-proxy, asymmetry, turbulence; '
-        'inner-beam mask r>=0.3 R_d (heuristic)'
+        'pure-global (no per-galaxy tuning); analytic n(r) with global disc-weight normalization; '
+        'global M/L=1.0; ξ_threads: f_gas discretized by global quintiles; ζ with h_z/R_d=0.25; '
+        'errors σ0, fractional floor, beam-proxy/cat-beam when available, asymmetry, turbulence; '
+        'inner-beam mask uses catalog beam when available, else r>=0.3 R_d'
     )
     summary = {
         'N_ilg': int(len(df_rs)),
