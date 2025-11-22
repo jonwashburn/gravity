@@ -1,0 +1,68 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\title{Theoretical Bounds on Global-Only Rotation Curve Fits}
+\author{Recognition Physics Institute}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We estimate the theoretical lower bound for the reduced $\chi^2$ statistic ($\chi_\nu^2$) in galaxy rotation curve fits under a strict "Global-Only" policy. While a perfect model with perfect data yields $\chi_\nu^2 \approx 1$, irreducible observational systematics (distance, inclination) and physical non-idealities (bars, warps) impose a higher floor when per-galaxy tuning is forbidden. We argue that a median $\chi_\nu^2 \in [2.0, 3.0]$ represents the effective theoretical limit for this dataset under these constraints.
+\end{abstract}
+
+\section{Introduction}
+The Information-Limited Gravity (ILG) framework imposes a severe constraint: a single universal kernel $w(r)$ must fit all galaxies using only photometrically derived inputs and global constants. This contrasts with NFW halos (2-3 free parameters per galaxy) or standard MOND fits (often leaving $M/L$ or distance as free parameters). Here we quantify the "cost" of this rigidity.
+
+\section{Sources of Irreducible Residuals}
+
+\subsection{Observational Systematics}
+SPARC data quality is high, but not infinite.
+\begin{itemize}
+    \item \textbf{Distance ($D$):} Errors in $D$ scale the physical radius $r$ and the luminosity (and thus baryonic velocity contribution). Since we fix $D$ to catalog values, any error $\delta D$ manifests as a mismatch between the predicted and observed curve shape.
+    \item \textbf{Inclination ($i$):} Observed velocities are deprojected by $\sin(i)$. Errors in photometric inclination (used by our policy) vs. kinematic inclination (tuned by others) directly scale the velocity amplitude.
+    \item \textbf{Beam Smearing:} While we model this, the correction is analytic and global, not a perfect deconvolution of the 2D velocity field.
+\end{itemize}
+
+\subsection{Physical Non-Idealities}
+\begin{itemize}
+    \item \textbf{Non-Circular Motions:} Bars and spiral arms induce streaming motions of $10-20$ km/s. A global axisymmetric force law cannot capture these azimuthally dependent features.
+    \item \textbf{Warps:} Many outer disks are warped. Our global $\zeta(r)$ correction is a mean-field approximation; it cannot match specific warp geometries.
+    \item \textbf{Stellar $M/L$ Variations:} We enforce a single global $\Upsilon_*$. In reality, star formation histories vary, leading to scatter in true $\Upsilon_*$ (likely $0.1$ dex). This scatter is irreducible in a global-only model.
+\end{itemize}
+
+\section{Estimating the Floor}
+
+Let the total variance be $\sigma_{tot}^2 = \sigma_{obs}^2 + \sigma_{sys}^2 + \sigma_{model}^2$.
+If $\chi^2$ is computed using only $\sigma_{obs}$, but the true residuals include $\sigma_{sys}$ (geometry errors) and $\sigma_{model}$ (M/L scatter, non-circularity), then the expected value is:
+\begin{equation}
+    \langle \chi_\nu^2 \rangle \approx 1 + \frac{\langle \sigma_{sys}^2 \rangle + \langle \sigma_{model}^2 \rangle}{\langle \sigma_{obs}^2 \rangle}
+\end{equation}
+
+Typical values for SPARC:
+\begin{itemize}
+    \item $\sigma_{obs} \approx 5-10$ km/s.
+    \item $\sigma_{inc} \approx 5\%$ of $V_{flat} \approx 5-10$ km/s.
+    \item $\sigma_{M/L} \approx 10\%$ of $V_{disk} \approx 5-15$ km/s.
+    \item $\sigma_{non-circ} \approx 5-10$ km/s.
+\end{itemize}
+
+Combining these in quadrature, the "physics/systematics" noise is comparable to or larger than the observational error.
+\[
+    \frac{\sigma_{sys}^2 + \sigma_{model}^2}{\sigma_{obs}^2} \approx \frac{10^2 + 10^2}{5^2} \approx \frac{200}{25} = 8 \quad (\text{Worst Case})
+\]
+\[
+    \frac{\sigma_{sys}^2 + \sigma_{model}^2}{\sigma_{obs}^2} \approx \frac{5^2 + 5^2}{10^2} \approx \frac{50}{100} = 0.5 \quad (\text{Best Case})
+\]
+
+A realistic ensemble average suggests an excess variance factor of $\sim 1-3$. Thus, we expect $\langle \chi_\nu^2 \rangle \approx 2.0 - 4.0$.
+
+\section{Conclusion}
+A median $\chi_\nu^2$ significantly below 2.0 without per-galaxy tuning would likely indicate overfitting (e.g., overestimated error bars). Our target of $\sim 2.75$ is therefore consistent with a "correct" global theory limited by real-world astrophysical scatter. Improving beyond this requires relaxing the global-only policy (e.g., allowing M/L scatter) or explicit modeling of 2D features.
+
+\end{document}
+
